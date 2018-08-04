@@ -1,0 +1,140 @@
+    
+{% extends "base.html" %}
+{% block title %} News Information Extraciton {% endblock title %}
+
+{% block nav_index_home %} class="nav-link active btn-primary" {% endblock nav_index_home%}
+
+{% block content %}
+
+<br>
+<h2>Accident Death in Kathmandu Valley from {{ datefrom }} to {{ dateto }}</h2>
+
+<div id="map">
+</div>
+
+<style>
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+    padding: 5% 5%;
+    text-align: center;
+    margin-left: 15%;
+}
+table{
+  width: 40%;
+}
+    .axis path,
+    .axis line
+    {
+        fill: none;
+        stroke: black;
+        shape-rendering: crispEdges;
+    }
+
+
+
+ /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 70%;
+        width:70%;
+        margin-left: 15%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+.selectmap{
+margin-left:15%;
+margin-bottom: 3%;
+}
+h2{
+margin-left:15%;
+font-size:24px;
+margin-bottom: 2%;
+}
+</style>
+
+<script>
+
+      var map, heatmap;
+      var markers = [];
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 12,
+          center: { lat: 27.7172, lng: 85.3240},
+          mapTypeId: 'roadmap'
+        });
+
+        heatmap = new google.maps.visualization.HeatmapLayer({
+          data: getPoints(),
+          map: map
+        });
+         var gradient = [
+            'rgba(0, 255, 255, 0)',
+            'rgba(0, 0, 255, 1)',
+            'rgba(0, 100, 255, 1)',
+            'rgba(0, 150, 255, 1)',
+            'rgba(0, 200, 255, 1)',
+            'rgba(0, 220, 255, 1)',
+            'rgba(0, 255, 255, 1)',
+            'rgba(255, 255, 210, 1)',
+            'rgba(255, 255, 0, 1)',
+            'rgba(255, 210, 0, 1)',
+            'rgba(255, 210, 0, 1)',
+            'rgba(255, 210, 0, 1)',
+            'rgba(255, 0, 0, 1)',
+            'rgba(255, 0, 0, 1)'
+        ]
+        heatmap.set('gradient', heatmap.get('gradient') ? null : gradient);
+        heatmap.set('radius', heatmap.get('radius') ? null : 15);
+
+        var locations = [
+            {% for lat in latitude %}
+            ['place: {{ lat.location }} <br>death: {{ lat.death }} <br>injury:{{ lat.injury }}<br> No of accidets: {{ lat.count }}', {{ lat.latitude }}, {{lat.longitude}}],
+            {% endfor %}
+        ];
+         var infowindow = new google.maps.InfoWindow();
+
+        var iconBase = '';
+        var marker, i;
+        for (i = 0; i < locations.length; i++) {
+            marker = new google.maps.Marker({
+                position: new google.maps.LatLng(locations[i][1], locations[i][2]),
+                map: map,
+                icon: iconBase + ''
+            });
+
+            markers.push(marker);
+
+            google.maps.event.addListener(marker, 'mouseover', (function(marker, i) {
+                return function() {
+                    infowindow.setContent(locations[i][0]);
+                    infowindow.open(map, marker);
+                };
+            })(marker, i));
+        }
+
+        google.maps.event.addDomListener(window, 'load', initMap);
+      }
+
+
+
+
+      // Heatmap data: 500 Points
+       function getPoints() {
+            return [
+            {% for lat in latitude %}
+            new google.maps.LatLng({{ lat.latitude }}, {{lat.longitude}}),
+            {% endfor %}
+            ];
+
+      }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB0jbM6o1NAMZPhtlexx521CAj5VaQg_I4&libraries=visualization&callback=initMap">
+    </script>
+{% endblock content %}

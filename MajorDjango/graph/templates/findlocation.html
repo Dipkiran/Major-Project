@@ -1,0 +1,358 @@
+{% extends "base.html" %}
+{% block title %} News Information Extraciton {% endblock title %}
+
+{% block nav_index_home %} class="nav-link active btn-primary" {% endblock nav_index_home%}
+
+{% block content %}
+
+<style>
+
+body {
+  font: 10px sans-serif;
+  width: 100%;
+}
+
+.axis path,
+.axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.bar {
+  fill: steelblue;
+}
+
+.x.axis path {
+  display: none;
+}
+.title-text{
+font-size:24px;
+font-weight: 600;
+padding: 3% 20%;
+}
+.search{
+width:30%;
+float: right;
+}
+h2{
+margin-left:15%;
+font-size:24px;
+margin-bottom: 2%;
+margin-top: 2%;
+}
+.select{
+margin-left:15%;
+margin-bottom: 3%;
+font-size: 14px;
+}
+
+#locationmap{
+float: left;
+border: 2px solid grey;
+margin-left: 10%;
+padding: 1% 1%;
+display: inline;
+}
+#map{
+float: left;
+display: none;
+    margin-top: 5%;
+    text-align: center;
+    border: 2px solid grey;
+    margin-left: 15%;
+}
+#vehicle_two,  #vehicle_three, #vehicle_four, #ltp_location, #bkt_location, #ktm_location {
+display: none;
+}
+
+#location_info, #vehicle_info, #year, #month, #fromdate, #todate
+{
+position : inherit;
+}
+
+#buttons{
+width: 600px;
+margin-left: 15%;
+}
+#result{
+width: 100%;
+
+}
+
+.button-map{
+float: left;
+margin-top:5%;
+margin-left: 15%;
+font-size: 16px;
+}
+.button-table{
+float: left;
+margin-top:5%;
+margin-left: 15%;
+font-size: 16px;
+}
+.button-bar{
+float: left;
+margin-top:5%;
+margin-left: 15%;
+display:none;
+font-size: 16px;
+}
+
+.colortable{
+
+display: none;}
+
+.datatable{
+    margin-left: 5%;
+    float: left;
+    margin-top:2%;
+ }
+table, th, td {
+    border: 1px solid black;
+    border-collapse: collapse;
+}
+table{
+margin-left: 2%;
+width: 50%;
+}
+
+th,td{
+padding: 1% 1%;
+}
+
+.kathmandu{
+float: right;
+margin-right: 10%;
+margin-top: -5%;
+font-size: 18px;
+}
+.calender{
+display: none;
+}
+
+</style>
+
+<h2>Accidents {{ info }} in Places of Nepal </h2>
+
+<div class="select">
+    <form action="" method="post" name="myform">
+
+        {% csrf_token %}
+
+        <select name="location" id="location_info" onclick="removeValue()">
+            {% if locationvalue %}
+            {% if locationvalue != "1" %}
+            <option value="1" class="valueremove">{{ locationvalue|safe }}</option>
+            {% endif %}
+            {% endif %}
+            <option value="1" onclick="selectLocation()">Select Location</option>
+            {% for location in listoflocation %}
+            <option value="{{ location }}" onclick="selectLocation()">{{ location }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="ktmlocation" id="ktm_location">
+            <option value="1">Kathmandu Locations</option>
+            {% for location in ktm_location %}
+            <option value="{{ location.location }}" onclick="selectLocation()">{{ location.location }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="ltplocation" id="ltp_location">
+            <option value="1">Lalitpur Locations</option>
+            {% for location in ltp_location %}
+            <option value="{{ location.location }}" onclick="selectLocation()">{{ location.location }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="bktlocation" id="bkt_location">
+            <option value="1"> Bhaktapur Locations</option>
+            {% for location in bkt_location %}
+            <option value="{{ location.location }}" onclick="selectLocation()">{{ location.location }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="vehicletype" id="vehicle_info" onclick="removeValue()">
+            {% if vehiclevalue %}
+            {% if vehiclevalue != "1" %}
+            <option value="1" class="valueremove">{{ vehiclevalue|safe }}</option>
+            {% endif %}
+            {% endif %}
+            <option value="1" onclick="selectVehicle()">Select Vehicle Type</option>
+            {% for vehicle_type in vehicletype %}
+            <option value="{{ vehicle_type }}" onclick="selectVehicle()">{{ vehicle_type }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="vehicle_three" id="vehicle_three">
+            <option value="1">Select Vehicle</option>
+            {% for vehicle in vehiclethree %}
+            <option value="{{ vehicle }}">{{ vehicle }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="vehicle_two" id="vehicle_two">
+            <option value="1">Select Vehicle</option>
+            {% for vehicle in vehicletwo %}
+            <option value="{{ vehicle }}">{{ vehicle }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="vehicle_four" id="vehicle_four">
+            <option value="1">Select Vehicle</option>
+            {% for vehicle in vehiclefour %}
+            <option value="{{ vehicle }}">{{ vehicle }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="year" onclick="removeValue()" id="#year">
+            {% if yearvalue %}
+            {% if yearvalue != "1" %}
+            <option value="1" class="valueremove">{{ yearvalue|safe }}</option>
+            {% endif %}
+            {% endif %}
+            <option value="1">Select Year</option>
+            {% for year in yearlist %}
+            <option value="{{ year.year }}">{{ year.year }}</option>
+            {% endfor %}
+        </select>
+
+        <select name="month" onclick="removeValue()" id="#month">
+            {% if monthvalue %}
+            {% if monthvalue != "1" %}
+            <option value="1" class="valueremove">{{ monthvalue|safe }}</option>
+            {% endif %}
+            {% endif %}
+            <option value="1">Select Month</option>
+            {% for month in monthlist %}
+            <option value="{{ month }}">{{ month }}</option>
+            {% endfor %}
+        </select>
+        <select name="from" onclick="dateList()" id="fromdate">
+            <option value="1">DateFrom</option>
+
+        </select>
+        <div class="calender"><input type="date" id="from" name="from"
+                                     value='{{ start }}'
+                                     min="2010-01-01" max='{{ today|date:"Y-m-d" }}'/></div>
+
+        <select name="to" onclick="dateList()" id="todate">
+            <option value="1">DateTo</option>
+
+        </select>
+
+        <div class="calender"><input type="date" id="to" name="to"
+                                     value='{{ today|date:"Y-m-d" }}'
+                                     min="2010-01-01" max='{{ today|date:"Y-m-d" }}'/></div>
+
+
+        <button type="submit" class="btn btn-success">Success</button>
+    </form>
+</div>
+<div>
+    {% if locationlist %}<h2>Sorry! No accident is registered for your input data.</h2> {% endif %}
+    {% if locationdetail %}<h2> Your Vehicle doesnt register any accident.</h2>
+    <div class="searchbutton">
+    <button onclick="viewvehicleno()"> click to view all vehicles involved in accidents</button>
+    </div>
+</div>{% endif %}
+<script>
+    function selectLocation(){
+    var vehicleinfo=document.getElementById('location_info').value;
+    if (vehicleinfo == 'Kathmandu'){
+    $("#ktm_location").show();
+    $("#ltp_location").hide();
+     $("#bkt_location").hide();
+    }
+    else if (vehicleinfo == 'Lalitpur'){
+     $("#ltp_location").show();
+     $("#ktm_location").hide();
+     $("#bkt_location").hide();
+     }
+     else if (vehicleinfo == 'Bhaktapur'){
+     $("#bkt_location").show();
+     $("#ktm_location").hide();
+     $("#ltp_location").hide();
+     }
+     else{
+     $("#ltp_location").hide();
+     $("#ktm_location").hide();
+     $("#bkt_location").hide();
+     }
+    }
+    function selectVehicle(){
+    var locationinfo=document.getElementById('vehicle_info').value;
+    console.log(locationinfo);
+        if (locationinfo == 'two wheeler'){
+        $("#vehicle_two").show();
+        $("#vehicle_three").hide();
+        $("#vehicle_four").hide();
+        }
+        else if (locationinfo == 'three wheeler'){
+        $("#vehicle_two").hide();
+        $("#vehicle_three").show();
+        $("#vehicle_four").hide();
+        }
+        else if (locationinfo == 'four wheeler'){
+        $("#vehicle_two").hide();
+        $("#vehicle_three").hide();
+        $("#vehicle_four").show();
+        }
+        else{
+        $("#vehicle_two").hide();
+        $("#vehicle_three").hide();
+        $("#vehicle_four").hide();
+        }
+    }
+
+    function removeValue(){
+    $(".valueremove").hide();
+    }
+
+    function dateList(){
+    if ($(".calender").is(":visible")){
+        var locationinfo=document.getElementById('vehicle_info').value;
+        $(".calender").hide();
+     }
+     else{
+     $(".calender").show();
+     }
+    }
+
+
+
+
+</script>
+<script>
+    function selectLocation(){
+    var vehicleinfo=document.getElementById('location_info').value;
+    if (vehicleinfo == 'Kathmandu'){
+    $("#ktm_location").show();
+    $("#ltp_location").hide();
+     $("#bkt_location").hide();
+    }
+    else if (vehicleinfo == 'Lalitpur'){
+     $("#ltp_location").show();
+     $("#ktm_location").hide();
+     $("#bkt_location").hide();
+     }
+     else if (vehicleinfo == 'Bhaktapur'){
+     $("#bkt_location").show();
+     $("#ktm_location").hide();
+     $("#ltp_location").hide();
+     }
+     else{
+     $("#ltp_location").hide();
+     $("#ktm_location").hide();
+     $("#bkt_location").hide();
+     }
+    }
+
+</script>
+
+
+</body>
+
+{% endblock content %}
